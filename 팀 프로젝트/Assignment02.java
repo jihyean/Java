@@ -1,5 +1,5 @@
 package teamHW05;
-
+// 학생부 프로그램
 import java.util.Scanner;
 
 // 관리자 모드 비번 : 1234
