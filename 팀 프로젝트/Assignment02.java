@@ -38,7 +38,7 @@ public class Assignment02{
       Student[] data = new Student[3]; // 학생 배열 객체 생성, 최대 3명
 
       // 사용자 메인화면
-      String userMain = "=== 학생부 프로그램 ===\n"
+      final String userMain = "=== 학생부 프로그램 ===\n"
             + "1. 학생목록 출력\n"
             + "2. 학생 1명 출력\n"
             + "3. 프로그램 종료\n"
@@ -47,7 +47,7 @@ public class Assignment02{
             + "번호 입력 : ";
 
       // 관리자 메인화면
-      String managerMain = "=== 관리자 모드 ===\n"
+      final String managerMain = "=== 관리자 모드 ===\n"
             + "1. 학생 생성\n"
             + "2. 학생 점수 변경\n"
             + "3. 관리자 모드 종료\n"
