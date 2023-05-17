@@ -3,7 +3,7 @@
 # [접근제어자]
 
 public
-private
+private ...
 
 [ 로그 ]
 
