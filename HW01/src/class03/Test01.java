@@ -1,14 +1,13 @@
 package class03;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.Scanner;
-
-class Product implements Serializable {
+// 관리자 아이디: 1234 비밀번호: 5678
+// 상품 클래스
+class Product {
 	static Scanner sc = new Scanner(System.in);
 
 	private int num; // 상품 PK
@@ -122,7 +121,7 @@ class Product implements Serializable {
 
 }
 
-class Th01 extends Thread{
+class Th01 extends Thread{ //유저 선택창 출력 스레드
 
 	@Override
 	public void run() {
@@ -131,7 +130,7 @@ class Th01 extends Thread{
 	}
 }
 
-class Th02 extends Thread{
+class Th02 extends Thread{ //관리자 선택창 출력 스레드
 
 	@Override
 	public void run() {
@@ -147,14 +146,11 @@ public class Test01 {
 		Scanner sc = new Scanner(System.in);
 
 		int num;
-		boolean flag = false;
-		boolean flag2 = false;
 		while (true) {
 			num = checkAction(); // 숫자만 입력(예외처리)
 			int i;
 			for (i = 0; i < data.size(); i++) {
 				if (num == data.get(i).getNum()) {
-					flag = true;
 					return i; // 상품 존재시 해당상품 인덱스 반환
 				}
 			}
@@ -177,35 +173,32 @@ public class Test01 {
 			} catch (InputMismatchException e) {
 				sc.nextLine();
 				System.out.println("숫자로 입력해주세요");
-				// continue;
 			}
 		}
 	}
 	
-	public static void userMsg() {
-		Th01 t1 = new Th01();
+	public static void userMsg() { // 사용자 모드 목록 출력(딜레이 1.5초)
+		Th01 t1 = new Th01(); // 스레드 선언
 		
 		try {
-			Thread.sleep(1500);
+			Thread.sleep(1500); //1.5초 자원 배제
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-		t1.start();
+		t1.start(); // 사용자 목록 출력 스레드 실행
 	}
 	
-	public static void managerMsg() {
-		Th02 t2 = new Th02();
+	public static void managerMsg() { // 관리자 모드 목록 출력(딜레이 1.5초)
+		Th02 t2 = new Th02(); // 스레드 선언
 		
 		try {
-			Thread.sleep(1500);
+			Thread.sleep(1500); //1.5초 자원 배제
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-		t2.start();
+		t2.start(); // 관리자 목록 출력 스레드 실행
 	}
 
 	public static void main(String[] args) {
@@ -220,21 +213,12 @@ public class Test01 {
 
 		boolean flag = false; // 유효성 검사를 위한 변수
 		boolean flag2 = false;// 프로그램 완전 종료를 위한 변수
-
-		// 유저 선택창
-		String userMsg = "\n1. 상품목록출력\n" + "2. 구매하기\n" + "3. 프로그램종료\n";
-
-		// 관리자 선택창
-		String managerMsg = "\n1. 상품추가\n" + "2. 상품재고변경\n" + "3. 상품삭제\n" + "4. 관리자모드종료\n" + "5. 프로그램종료\n";
-
-		Th01 t1 = new Th01();
-		Th02 t2 = new Th02();
-		
+	
 		while (true) { // 종료할때까지 반복
 
-			int action = 0;
+			int action = 0; //사용자 행동 입력 변수
 			
-			userMsg();
+			userMsg(); //사용자모드 선택창 출력
 
 			action = checkAction();
 
@@ -249,6 +233,7 @@ public class Test01 {
 					continue;
 				}
 
+				// 목록 출력
 				for (Product product : data) {
 					System.out.println(product);
 				}
@@ -263,15 +248,31 @@ public class Test01 {
 					System.out.println("등록된 상품이 없습니다");
 					continue;
 				}
+				
+				int sum = 0; // 모든 상품들의 재고들의 합 저장 변수
+				for(int i =0; i<data.size(); i++) {
+					sum+=data.get(i).getCnt();
+				}
+				
+				if(sum<=0) { // 모든 상품이 품절이면 메인으로 이동
+					System.out.println("현재 모든 상품이 품절입니다");
+					continue;
+				}
 
 				System.out.println("구매하실 상품 번호를 입력해주세요");
 
-				// 존재하는지 검사
+				// 해당 상품 존재하는지 검사
 				int index = checkNum(data);
+				
+				// 선택한 상품이 품절일시
+				if(data.get(index).getCnt()<=0) {
+					System.out.println("해당 상품은 품절입니다.");
+					continue;
+				}
 
 				System.out.println("얼마나 구매하시겠습니까?");
 
-				int cnt;
+				int cnt; //재고 입력 변수
 
 				while (true) {
 					cnt = checkAction(); // 숫자만 입력 예외처리
@@ -281,7 +282,7 @@ public class Test01 {
 						continue;
 					}
 
-					data.get(index).sell(cnt);
+					data.get(index).sell(cnt); // 구매 메서드 실행
 					break;
 				}
 			}
@@ -304,10 +305,11 @@ public class Test01 {
 
 				while (true) { // 관리자 모드 종료을 선택하지 않으면 반복
 
-					managerMsg();
+					managerMsg(); // 관리자 모드 목록 출력
 
 					action = checkAction(); // 숫자만 입력
 
+					// 상품 목록 출력
 					for (Product product : data) {
 						System.out.println(product);
 					}
@@ -341,7 +343,7 @@ public class Test01 {
 
 						System.out.println("해당 상품의 가격을 입력해주세요");
 
-						int price;
+						int price; //가격 입력 변수
 						flag = false;
 						while (true) {
 							price = checkAction(); // 숫자만 입력
@@ -374,6 +376,7 @@ public class Test01 {
 						// 재고 입력 안함 선택 ---> 재고: 0
 						if (action != 2) {
 
+							// 상품 재고없이 추가(디폴트 값 재고:0)
 							data.add(new Product(numPK++, name, price));
 							System.out.println(data);
 						}
@@ -386,6 +389,7 @@ public class Test01 {
 								int cnt = checkAction();
 								if (cnt >= 0) {
 									flag = true;
+									// 상품 입력 받은 재고로 추가
 									data.add(new Product(numPK++, name, price, cnt));
 									System.out.println("추가되었습니다");
 								} else {
@@ -398,7 +402,7 @@ public class Test01 {
 							}
 
 						}
-						// else 추가 할것
+						
 
 					}
 					// 관리자 모드 기능2
@@ -418,9 +422,15 @@ public class Test01 {
 						System.out.println("재고를 얼마나 변경하시겠습니까?");
 						System.out.println("음수 입력시 재고가 감소됩니다");
 						int cnt = checkAction(); // 숫자만 입력
+						
+						// 재고 음수로 변경 시도시
+						if(data.get(index).getCnt()+cnt<0) {
+							System.out.println("음수로는 재고를 설정할 수 없습니다.");
+							System.out.println(data);
+							continue;
+						}
 
 						System.out.println("정말 변경하시겠습니까?");
-
 						while (true) {
 							System.out.println("1.예 2.아니오");
 							action = checkAction(); // 숫자만 입력
@@ -490,16 +500,15 @@ public class Test01 {
 				System.out.println("목록 중에 선택해주세요");
 			} // 사용자 모드 if 닫힘
 
-			if (flag2) {
+			if (flag2) { // 프로그램 전체 종료
 				break;
 			}
 
 		} // 전체 반복 while문 닫힘
 
-		// 파일 입출력
+		// 파일 입출력 (프로그램 종료시)
 		FileWriter fw;
 		try {
-
 			fw = new FileWriter(path_START + path_FILE + path_END);
 			
 			// fw = new FileWriter(path_START + path_FILE + path_END, true); // 파일이 있을경우 이어쓰기
