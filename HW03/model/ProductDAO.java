@@ -6,6 +6,7 @@ public class ProductDAO {
 	public ArrayList<ProductVO> datas;
 	private static int PK = 1001; // PK값 1001부터 시작
 
+	// 생성자
 	public ProductDAO() {
 		this.datas = new ArrayList<ProductVO>();
 		this.datas.add(new ProductVO(PK++, "화분", 2000, 20));
@@ -34,14 +35,15 @@ public class ProductDAO {
 		}
 
 		// :가격 2개 입력 받아 범위 검색(필터 검색)
-		// 가격 입력 2개 > (pVO.getName()이 "필터검색"이면)
+		// 가격 입력 2개 > (pVO.getName()이 1이면 "필터검색 기능")
 		// > (pVO.getPrice()와 pVO.getCnt()로 가격을 가져옴)
-		// 필터 기능: num(PK)인자에 1 
+		// 필터 기능: num(PK)인자에 1
 		else if (pVO.getNum() == 1) {
 			ArrayList<ProductVO> mdatas = new ArrayList<ProductVO>();
 			for (ProductVO data : datas) {
+				// 가격 인자값보다 크거나 같고 재고인자값보다 작거나 같으면
 				if (data.getPrice() >= pVO.getPrice() && data.getPrice() <= pVO.getCnt()) {
-					mdatas.add(data);
+					mdatas.add(data); //임시 데이터(검색결과)에 추가
 				}
 			}
 			return mdatas;
@@ -52,6 +54,7 @@ public class ProductDAO {
 		else {
 			ArrayList<ProductVO> mdatas = new ArrayList<ProductVO>();
 			for (ProductVO data : datas) {
+				// 이름 인자값이 포함되어 있으면
 				if (data.getName().contains(pVO.getName())) {
 					mdatas.add(data);
 				}
@@ -77,7 +80,7 @@ public class ProductDAO {
 	}
 
 	// U
-	public int update(ProductVO pVO) {
+	public ProductVO update(ProductVO pVO) {
 		// : 구매하기(재고 변경과 유사)
 		// 번호를 입력 받아서 해당 상품의 재고를 변경 > (pVO.getNum()으로 상품번호, pVO.getCnt 구매할 개수 가져옴)
 		// 구매의 경우 -만 재고 변경은 모두 가능하기 때문에 연산이"+"임을 유의 해주세요
@@ -88,52 +91,54 @@ public class ProductDAO {
 		// 해당 상품의 번호를 입력 받음
 		// 해당 상품 있는 지 확인
 		// 1. 있다 > 가격 리턴
-		// 2. 없다 > false 리턴 재고부족 리턴
+		// 2. 없다 > setPrice(0) 리턴 재고부족 리턴 --->pVO의 가격값 인자 0
 		// ctrl한테 잔돈 입력 성공 했는지 입력받음
 		// 재고를 실질적으로 변경
-		// 변경 성공 여부 boolean으로 반환 > 가격 때문에 int로 합니다
-		
-		// 가격 리턴 때문에 int 출력으로 변경하였습니다
-		// 성공: 1 실패:0 -->변경 가능
+		// 변경 성공 여부 리턴
+		// 1. 변경 성공 > 재고가 변경된 pVO 반환
+		// 2. 변경 실패 > 재고 setCnt(0) 한뒤 반환 --->pVO의 재고값 인자 0
+
 
 		if (pVO.getName().equals("재고검사")) {
 			for (ProductVO data : datas) {
-				if (data.getNum() == pVO.getNum()) {
+				if (data.getNum() == pVO.getNum()) {// 구매할때
 					// 구매할때에는 절대값이랑 내 재고랑 비교
-					if (pVO.getCnt() < 0) { // 구매할때
-						int cnt = pVO.getCnt() * (-1); // 구매하려는 양
-						if (cnt > data.getCnt()) {
-							System.out.println(" 로그: update(): 재고부족");
-							return 0;
-						}
-						// 재고 있을시(구매가능할시) 총 가격을 리턴
-						return (data.getPrice()) * (pVO.getCnt());
-
+					int cnt = pVO.getCnt() * (-1); // 구매하려는 양
+					if (cnt > data.getCnt()) {
+						pVO.setPrice(0);
+						System.out.println(" 로그: update(): 재고부족");
+						return pVO;
 					}
-//				data.setCnt(data.getCnt()+pVO.getCnt());
-//				System.out.println("data: "+data);
-//				return true;		
+					// 재고 있을시(구매가능할시) 총 가격을 리턴
+					int price = (data.getPrice()) * (pVO.getCnt());
+					pVO.setPrice(price);
+					return pVO;
+	
 				}
 			}
+			pVO.setPrice(0); //해당 상품 없을시 가격 0 리턴
 			System.out.println(" 로그: update(): 해당상품없음");
-			return 0;
+			return pVO;
 		}
-		
+
 		// 돈 입력 성공 했을때
 		// 주실때 PK, 이름은 "재고변경"
 		if (pVO.getName().equals("재고변경")) {
 			for (ProductVO data : datas) {
-				
-				data.setCnt(data.getCnt()+pVO.getCnt());
-				System.out.println("data: "+data);
-				return 1;
+
+				data.setCnt(data.getCnt() + pVO.getCnt());
+				System.out.println("data: " + data);
+				return data; //재고변경 성공시 해당 재고 리턴
 			}
-			
+
+			pVO.setCnt(0); //재고변경 실패시 재고 0 리턴
 			System.out.println(" 로그: update(): 재고 변경에 실패하였습니다");
-			return 0;
-			
+			return pVO;
+
 		}
-		return 0;
+		System.out.println(" 로그: update(): return null 인자값 확인해주세요");
+		return null;	// 재고검사도 재고변경도 아닌 경우 값에 혼동이 올까봐 null로 반환
+		//return pVO;	// 변경 용이하게 기존 pVO리턴 남겨놨습니다
 
 //		둘이 같은 기능이므로 View로 안내만 다르게
 //		(어떤 상품의 번호를 받아서 입력받은 만큼 제거)
